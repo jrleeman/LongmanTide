@@ -58,9 +58,6 @@ def solve_longman(lat,lon,alt,time):
     cos_alpha = cos(N)*cos(nu)+sin(N)*sin(nu)*cos(omega)
     sin_alpha = sin(omega)*sin(N)/sin(I)
     alpha = 2*atan(sin_alpha/(1+cos_alpha))
-
-    # Not sure what's going on with the paper version here
-    #xi = N - asin(sin(omega)*sin(N)/sin(I))
     xi = N-alpha
 
     sigma = s - xi
@@ -84,9 +81,6 @@ def solve_longman(lat,lon,alt,time):
     gm = (mu*M*r/(d*d*d))*(3*cos_theta**2-1) + (3./2)*(mu*M*r*r/(d*d*d*d))*(5*cos_theta**3 - 3*cos_theta)
     gs = mu*S*r/(D*D*D) * (3*cos_phi**2-1)
 
-    # TESTING
-    #gm = float(mu*M*r)/d**3 * (3*(cos_theta)**2-1)
-
     love = (1+h2-1.5*k2)
     g0 = (gm+gs)*1e3*love
     return gm,gs,g0,g0
@@ -95,27 +89,52 @@ lat = 40.7914
 lon = 282.1414
 alt = 370*100.
 
-grav = []
-gmoon = []
-gsun = []
-dummy = []
+def run_model(start_time,increment,days):
+    times = []
+    for i in range(int(24*7*3600/increment)):
+        times.append(start_time + i*timedelta(seconds=increment))
+    grav = []
+    gmoon = []
+    gsun = []
+    dummy = []
+
+    for time in times:
+        gm,gs,g,d = solve_longman(lat,lon,alt,time)
+        grav.append(g)
+        gmoon.append(gm)
+        gsun.append(gs)
+        dummy.append(d)
+
+    return gmoon,gsun,grav,dummy
 
 t0 = datetime(2015,4,23,0,0,0)
-times = []
-for i in range(7*24*6):
-    times.append(t0 + i*timedelta(seconds=600))
-
-for time in times:
-    gm,gs,g,d = solve_longman(lat,lon,alt,time)
-    grav.append(g)
-    gmoon.append(gm)
-    gsun.append(gs)
-    dummy.append(d)
-
-#plt.plot(grav)
-plt.plot(dummy)
-
 net_results = np.loadtxt('net_results.txt',skiprows=10,usecols=[2])
 net_time = np.arange(len(net_results))
 plt.plot(net_time,net_results,color='r')
+
+gm,gs,g,d = run_model(t0,600,7)
+plt.plot(np.array(g),color='b')
 plt.show()
+
+
+
+
+# grav = []
+# gmoon = []
+# gsun = []
+# dummy = []
+#
+# t0 = datetime(2015,4,23,0,0,0)
+# times = []
+# for i in range(7*24*6):
+#     times.append(t0 + i*timedelta(seconds=600))
+#
+# for time in times:
+#     gm,gs,g,d = solve_longman(lat,lon,alt,time)
+#     grav.append(g)
+#     gmoon.append(gm)
+#     gsun.append(gs)
+#     dummy.append(d)
+#
+# #plt.plot(grav)
+# plt.plot(dummy)
