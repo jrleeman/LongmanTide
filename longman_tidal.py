@@ -12,7 +12,7 @@ def calculate_julian_century(timestamp):
     origin_date = datetime(1899,12,31,12,00,00)# Noon Dec 31, 1899
     dt = timestamp - origin_date
     days = dt.days + dt.seconds/3600./24.
-    return days/36525, timestamp.hour
+    return days/36525, timestamp.hour + timestamp.minute/60.
 
 def solve_longman(lat,lon,alt,time):
 
@@ -102,8 +102,8 @@ dummy = []
 
 t0 = datetime(2015,4,23,0,0,0)
 times = []
-for i in range(7*24):
-    times.append(t0 + i*timedelta(seconds=3600))
+for i in range(7*24*6):
+    times.append(t0 + i*timedelta(seconds=600))
 
 for time in times:
     gm,gs,g,d = solve_longman(lat,lon,alt,time)
@@ -116,6 +116,6 @@ for time in times:
 plt.plot(dummy)
 
 net_results = np.loadtxt('net_results.txt',skiprows=10,usecols=[2])
-net_time = np.arange(len(net_results))/6.
+net_time = np.arange(len(net_results))
 plt.plot(net_time,net_results,color='r')
 plt.show()
