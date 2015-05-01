@@ -23,7 +23,7 @@ class TideModel():
         origin_date = datetime(1899,12,31,12,00,00) # Noon Dec 31, 1899
         dt = timestamp - origin_date
         days = dt.days + dt.seconds/3600./24.
-        return days/36525, timestamp.hour + timestamp.minute/60.
+        return days/36525, timestamp.hour + timestamp.minute/60. + timestamp.second/3600.
 
     def solve_longman(self,lat,lon,alt,time):
         """
