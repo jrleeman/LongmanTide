@@ -11,7 +11,9 @@ model.longitude = 282.1414
 model.altitude = 370.
 model.duration = 7
 model.run_model()
+model.write('output.txt')
 model.plot()
+
 
 #net_results = np.loadtxt('net_results.txt',skiprows=10,usecols=[2])
 #net_time = np.arange(len(net_results))

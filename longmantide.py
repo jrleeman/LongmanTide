@@ -123,7 +123,7 @@ class TideModel():
 
         love = (1+h2-1.5*k2)
         g0 = (gm+gs)*1e3*love
-        return gm,gs,g0
+        return gm*1e3*love,gs*1e3*love,g0
 
     def run_model(self):
         """
@@ -134,23 +134,45 @@ class TideModel():
 
         for i in np.arange(self.n_steps):
             time_at_step = self.start_time + i * timedelta(seconds=self.increment)
-            gm,gs,g = self.solve_longman(self.latitude,self.longitude,self.altitude,time_at_step)
+            gm,gs,g = self.solve_longman(self.latitude,self.longitude,
+                                         self.altitude,time_at_step)
             self.results.model_time.append(time_at_step)
             self.results.gravity_moon.append(gm)
             self.results.gravity_sun.append(gs)
             self.results.gravity_total.append(g)
 
     def plot(self):
-        # Setup figure and axes
-        # Generally plots is ~1.33x width to height (10,7.5 or 12,9)
+        """
+        Make a simple plot of the gravitational tide results from the
+        model run.
+        """
         fig = plt.figure(figsize=(12,6))
         ax1 = plt.subplot(111)
-
-        # Set labels and tick sizes
         ax1.set_xlabel(r'Date',fontsize=18)
         ax1.set_ylabel(r'Anomaly [mGal]',fontsize=18)
         ax1.tick_params(axis='both', which='major', labelsize=16)
-
-        # Plotting
-        ax1.plot_date(self.results.model_time,self.results.gravity_total,'-k',linewidth=2)
+        ax1.plot_date(self.results.model_time,self.results.gravity_total,
+                      '-k',linewidth=2)
         plt.show()
+        return fig,ax1
+
+    def write(self,fname):
+        """
+        Write results out of a file for later analysis or reading into another
+        method for analysis/correction of data.
+        """
+        t_string = datetime.strftime(self.start_time,'%Y-%m-%dT%H:%M:%S')
+        f = open(fname,'w')
+        f.write("Station latitude: %f\n" %self.latitude)
+        f.write("Station longitude: %f\n" %self.longitude)
+        f.write("Station altitude [m]: %f\n" %self.altitude)
+        f.write("Time Increment [s]: %f\n" %self.increment)
+        f.write("Start Time: %s\n" %t_string)
+        f.write("Duration [days]: %f\n" %self.duration)
+        f.write("\nTime,Lunar,Solar,Total\n")
+        f.write("YYYY-MM-DDTHH:MM:SS\tmGal\tmGal\tmGal\n")
+
+        for i in np.arange(self.n_steps):
+            t_string = datetime.strftime(self.results.model_time[i],'%Y-%m-%dT%H:%M:%S')
+            f.write("%s\t%f\t%f\t%f\n" %(t_string,self.results.gravity_moon[i],self.results.gravity_sun[i],self.results.gravity_total[i]))
+        f.close()
