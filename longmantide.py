@@ -2,11 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime,timedelta
 from math import sqrt, atan, asin, acos, sin, cos, radians
+from collections import namedtuple
 
 class TideModel():
 
     def __init__(self):
         self.name = 'Model'
+        self.results = namedtuple("results",["model_time","gravity_moon","gravity_sun","gravity_total"])
+        self.results.model_time = []
+        self.results.gravity_moon = []
+        self.results.gravity_sun = []
+        self.results.gravity_total = []
 
     def calculate_julian_century(self,timestamp):
         """
@@ -125,16 +131,14 @@ class TideModel():
         increment seconds for days.
         """
         self.n_steps = int(24*self.duration*3600/self.increment)
-        self.model_times = []
 
-        # Temp
-        self.gravity = []
-        times = []
         for i in np.arange(self.n_steps):
             time_at_step = self.start_time + i * timedelta(seconds=self.increment)
-            self.model_times.append(time_at_step)
-            gm,gs,g = self.solve_longman(self.latitude,self.longitude,self.altitude,self.start_time + i * timedelta(seconds=self.increment))
-            self.gravity.append(g)
+            gm,gs,g = self.solve_longman(self.latitude,self.longitude,self.altitude,time_at_step)
+            self.results.model_time.append(time_at_step)
+            self.results.gravity_moon.append(gm)
+            self.results.gravity_sun.append(gs)
+            self.results.gravity_total.append(g)
 
     def plot(self):
         # Setup figure and axes
@@ -148,5 +152,5 @@ class TideModel():
         ax1.tick_params(axis='both', which='major', labelsize=16)
 
         # Plotting
-        ax1.plot_date(self.model_times,self.gravity,'-k',linewidth=2)
+        ax1.plot_date(self.results.model_time,self.results.gravity_total,'-k',linewidth=2)
         plt.show()
