@@ -1,3 +1,21 @@
+#!/usr/bin/env python
+
+"""
+This module computes the Earth gravitational tide.
+
+Gravitational effects from the sun and moon are considered and computed
+following the methodology described by Longman, 1959. Model time is calculated
+from standard datetime objects to abstract away from the Julian century base.
+"""
+
+__author__ = "John Leeman"
+__credits__ = ["Atsuhiro Muto", "Judson Ahern"]
+__license__ = ""
+__version__ = "1.0."
+__maintainer__ = "John Leeman"
+__email__ = "kd5wxb@gmail.com"
+__status__ = "Production"
+
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime,timedelta
