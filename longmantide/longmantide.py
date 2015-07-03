@@ -1,49 +1,34 @@
 #!/usr/bin/env python
 
-"""
-This module computes the Earth gravitational tide.
-
-Gravitational effects from the sun and moon are considered and computed
-following the methodology described by Longman, 1959. Model time is calculated
-from standard datetime objects to abstract away from the Julian century base.
-"""
-
-__author__ = "John Leeman"
-__credits__ = ["Atsuhiro Muto", "Judson Ahern"]
-__license__ = ""
-__version__ = "1.0."
-__maintainer__ = "John Leeman"
-__email__ = "kd5wxb@gmail.com"
-__status__ = "Production"
-
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 from math import sqrt, atan, asin, acos, sin, cos, radians
 from collections import namedtuple
+
 
 class TideModel():
 
     def __init__(self):
         self.name = 'Model'
-        self.results = namedtuple("results",["model_time","gravity_moon","gravity_sun","gravity_total"])
+        self.results = namedtuple("results", ["model_time", "gravity_moon", "gravity_sun", "gravity_total"])
         self.results.model_time = []
         self.results.gravity_moon = []
         self.results.gravity_sun = []
         self.results.gravity_total = []
 
-    def calculate_julian_century(self,timestamp):
+    def calculate_julian_century(self, timestamp):
         """
         Take a datetime object and returns the decimal Julian century and
         floating point hour. This is in reference to noon on December 31,
         1899 as stated in the paper.
         """
-        origin_date = datetime(1899,12,31,12,00,00) # Noon Dec 31, 1899
+        origin_date = datetime(1899, 12, 31, 12, 00, 00)  # Noon Dec 31, 1899
         dt = timestamp - origin_date
         days = dt.days + dt.seconds/3600./24.
         return days/36525, timestamp.hour + timestamp.minute/60. + timestamp.second/3600.
 
-    def solve_longman(self,lat,lon,alt,time):
+    def solve_longman(self, lat, lon, alt, time):
         """
         Given the location and datetime object, computes the current
         gravitational tide and associated quantities. Latitude and longitude
@@ -51,28 +36,28 @@ class TideModel():
         is a datetime object.
         """
 
-        T,t0 = self.calculate_julian_century(time)
+        T, t0 = self.calculate_julian_century(time)
 
         if t0 < 0:
             t0 += 24.
         if t0 >= 24:
             t0 -= 24.
 
-        mu = 6.673e-8 # Newton's gravitational constant
-        M = 7.3537e25 # Mass of the moon in grams
-        S = 1.993e33 # Mass of the sun in grams
-        e = 0.05490 # Eccentricity of the moon's orbit
-        m = 0.074804 # Ratio of mean motion of the sun to that of the moon
-        c = 3.84402e10 # Mean distance between the centers of the earth and the moon
-        c1 = 1.495e13 # Mean distance between centers of the earth and sun in cm
-        h2=0.612 # Love parameter
-        k2=0.303 # Love parameter
-        a = 6.378270e8 # Earth's equitorial radius in cm
-        i = 0.08979719 # (i) Inclination of the moon's orbit to the ecliptic
-        omega = radians(23.452) # Inclination of the Earth's equator to the ecliptic 23.452 degrees
-        L = -1 * lon # For some reason his lat/lon is defined with W as + and E as -
-        lamb = radians(lat) # (lambda) Latitude of point P
-        H = alt * 100. # (H) Altitude above sea-level of point P in cm
+        mu = 6.673e-8  # Newton's gravitational constant
+        M = 7.3537e25  # Mass of the moon in grams
+        S = 1.993e33  # Mass of the sun in grams
+        e = 0.05490  # Eccentricity of the moon's orbit
+        m = 0.074804  # Ratio of mean motion of the sun to that of the moon
+        c = 3.84402e10  # Mean distance between the centers of the earth and the moon
+        c1 = 1.495e13  # Mean distance between centers of the earth and sun in cm
+        h2 = 0.612  # Love parameter
+        k2 = 0.303  # Love parameter
+        a = 6.378270e8  # Earth's equitorial radius in cm
+        i = 0.08979719  # (i) Inclination of the moon's orbit to the ecliptic
+        omega = radians(23.452)  # Inclination of the Earth's equator to the ecliptic 23.452 degrees
+        L = -1 * lon  # For some reason his lat/lon is defined with W as + and E as -
+        lamb = radians(lat)  # (lambda) Latitude of point P
+        H = alt * 100.  # (H) Altitude above sea-level of point P in cm
 
         # Lunar Calculations
         # (s) Mean longitude of moon in its orbit reckoned from the referred equinox
@@ -152,8 +137,8 @@ class TideModel():
 
         for i in np.arange(self.n_steps):
             time_at_step = self.start_time + i * timedelta(seconds=self.increment)
-            gm,gs,g = self.solve_longman(self.latitude,self.longitude,
-                                         self.altitude,time_at_step)
+            gm, gs, g = self.solve_longman(self.latitude, self.longitude,
+                                         self.altitude, time_at_step)
             self.results.model_time.append(time_at_step)
             self.results.gravity_moon.append(gm)
             self.results.gravity_sun.append(gs)
@@ -164,33 +149,33 @@ class TideModel():
         Make a simple plot of the gravitational tide results from the
         model run.
         """
-        fig = plt.figure(figsize=(12,6))
+        fig = plt.figure(figsize=(12, 6))
         ax1 = plt.subplot(111)
-        ax1.set_xlabel(r'Date',fontsize=18)
-        ax1.set_ylabel(r'Anomaly [mGal]',fontsize=18)
+        ax1.set_xlabel(r'Date', fontsize=18)
+        ax1.set_ylabel(r'Anomaly [mGal]', fontsize=18)
         ax1.tick_params(axis='both', which='major', labelsize=16)
-        ax1.plot_date(self.results.model_time,self.results.gravity_total,
-                      '-k',linewidth=2)
+        ax1.plot_date(self.results.model_time, self.results.gravity_total,
+                      '-k', linewidth=2)
         plt.show()
-        return fig,ax1
+        return fig, ax1
 
     def write(self,fname):
         """
         Write results out of a file for later analysis or reading into another
         method for analysis/correction of data.
         """
-        t_string = datetime.strftime(self.start_time,'%Y-%m-%dT%H:%M:%S')
-        f = open(fname,'w')
-        f.write("Station latitude: %f\n" %self.latitude)
-        f.write("Station longitude: %f\n" %self.longitude)
-        f.write("Station altitude [m]: %f\n" %self.altitude)
-        f.write("Time Increment [s]: %f\n" %self.increment)
-        f.write("Start Time: %s\n" %t_string)
-        f.write("Duration [days]: %f\n" %self.duration)
+        t_string = datetime.strftime(self.start_time, '%Y-%m-%dT%H:%M:%S')
+        f = open(fname, 'w')
+        f.write("Station latitude: %f\n" % self.latitude)
+        f.write("Station longitude: %f\n" % self.longitude)
+        f.write("Station altitude [m]: %f\n" % self.altitude)
+        f.write("Time Increment [s]: %f\n" % self.increment)
+        f.write("Start Time: %s\n" % t_string)
+        f.write("Duration [days]: %f\n" % self.duration)
         f.write("\nTime,Lunar,Solar,Total\n")
         f.write("YYYY-MM-DDTHH:MM:SS\tmGal\tmGal\tmGal\n")
 
         for i in np.arange(self.n_steps):
-            t_string = datetime.strftime(self.results.model_time[i],'%Y-%m-%dT%H:%M:%S')
-            f.write("%s\t%f\t%f\t%f\n" %(t_string,self.results.gravity_moon[i],self.results.gravity_sun[i],self.results.gravity_total[i]))
+            t_string = datetime.strftime(self.results.model_time[i], '%Y-%m-%dT%H:%M:%S')
+            f.write("%s\t%f\t%f\t%f\n" %(t_string, self.results.gravity_moon[i], self.results.gravity_sun[i], self.results.gravity_total[i]))
         f.close()
