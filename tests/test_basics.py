@@ -1,6 +1,11 @@
-from nose.tools import *
+# Copyright (c) 2017 Leeman Geophysical LLC.
+# Distributed under the terms of the MIT License.
+# SPDX-License-Identifier: MIT
+r"""Basic functionality tests of the Longman tide model."""
+
 from datetime import datetime
 import numpy as np
+
 from longmantide import longmantide
 
 
