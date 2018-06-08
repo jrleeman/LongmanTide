@@ -10,7 +10,7 @@ config = {
     'download_url': 'https://github.com/jrleeman/LongmanTide',
     'author_email': 'kd5wxb@gmail.com',
     'version': '0.1',
-    'install_requires': ['nose', 'numpy', 'matplotlib'],
+    'install_requires': ['numpy', 'matplotlib'],
     'packages': ['longmantide'],
     'scripts': [],
     'name': 'LongmanTide'
