@@ -2,7 +2,6 @@
 
 from collections import namedtuple
 from datetime import datetime, timedelta
-from math import acos, asin, atan, cos, radians, sin, sqrt
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -92,10 +91,10 @@ class TideModel():
         a = 6.378270e8  # Earth's equitorial radius in cm
         i = 0.08979719  # (i) Inclination of the moon's orbit to the ecliptic
         # Inclination of the Earth's equator to the ecliptic 23.452 degrees
-        omega = radians(23.452)
+        omega = np.radians(23.452)
         # For some reason his lat/lon is defined with W as + and E as -
         L = -1 * lon
-        lamb = radians(lat)  # (lambda) Latitude of point P
+        lamb = np.radians(lat)  # (lambda) Latitude of point P
         H = alt * 100.  # (H) Altitude above sea-level of point P in cm
 
         # Lunar Calculations
@@ -113,23 +112,23 @@ class TideModel():
         N = (4.52360161181 - 33.757146295 * T + 3.6264063347e-05 * T * T +
              3.39369576777e-08 * T * T * T)
         # (I) Inclination of the moon's orbit to the equator
-        I = acos(cos(omega)*cos(i) - sin(omega)*sin(i)*cos(N))
+        I = np.arccos(np.cos(omega)*np.cos(i) - np.sin(omega)*np.sin(i)*np.cos(N))
         # (nu) Longitude in the celestial equator of its intersection
         # A with the moon's orbit
-        nu = asin(sin(i)*sin(N)/sin(I))
+        nu = np.arcsin(np.sin(i)*np.sin(N)/np.sin(I))
         # (t) Hour angle of mean sun measured west-ward from
         # the place of observations
-        t = radians(15. * (t0 - 12) - L)
+        t = np.radians(15. * (t0 - 12) - L)
 
         # (chi) right ascension of meridian of place of observations
         # reckoned from A
         chi = t + h - nu
         # cos(alpha) where alpha is defined in eq. 15 and 16
-        cos_alpha = cos(N) * cos(nu) + sin(N) * sin(nu) * cos(omega)
+        cos_alpha = np.cos(N) * np.cos(nu) + np.sin(N) * np.sin(nu) * np.cos(omega)
         # sin(alpha) where alpha is defined in eq. 15 and 16
-        sin_alpha = sin(omega) * sin(N) / sin(I)
+        sin_alpha = np.sin(omega) * np.sin(N) / np.sin(I)
         # (alpha) alpha is defined in eq. 15 and 16
-        alpha = 2 * atan(sin_alpha / (1 + cos_alpha))
+        alpha = 2 * np.arctan(sin_alpha / (1 + cos_alpha))
         # (xi) Longitude in the moon's orbit of its ascending
         # intersection with the celestial equator
         xi = N - alpha
@@ -139,9 +138,9 @@ class TideModel():
         sigma = s - xi
         # (l) Longitude of moon in its orbit reckoned from its ascending
         # intersection with the equator
-        l = (sigma + 2 * e * sin(s - p) + (5. / 4) * e * e * sin(2 * (s - p)) +
-             (15. / 4) * m * e * sin(s - 2 * h + p) + (11. / 8) *
-             m * m * sin(2 * (s - h)))
+        l = (sigma + 2 * e * np.sin(s - p) + (5. / 4) * e * e * np.sin(2 * (s - p)) +
+             (15. / 4) * m * e * np.sin(s - 2 * h + p) + (11. / 8) *
+             m * m * np.sin(2 * (s - h)))
 
         # Sun
         # (p1) Mean longitude of solar perigee
@@ -154,18 +153,18 @@ class TideModel():
         chi1 = t + h
         # (l1) Longitude of sun in the ecliptic reckoned from the
         # vernal equinox
-        l1 = h + 2 * e1 * sin(h - p1)
+        l1 = h + 2 * e1 * np.sin(h - p1)
         # cosine(theta) Theta represents the zenith angle of the moon
-        cos_theta = (sin(lamb) * sin(I) * sin(l) + cos(lamb) * (cos(0.5 * I)**2
-                     * cos(l - chi) + sin(0.5 * I)**2 * cos(l + chi)))
+        cos_theta = (np.sin(lamb) * np.sin(I) * np.sin(l) + np.cos(lamb) * (np.cos(0.5 * I)**2
+                     * np.cos(l - chi) + np.sin(0.5 * I)**2 * np.cos(l + chi)))
         # cosine(phi) Phi represents the zenith angle of the run
-        cos_phi = (sin(lamb) * sin(omega) * sin(l1) + cos(lamb) *
-                   (cos(0.5 * omega)**2 * cos(l1 - chi1) +
-                   sin(0.5 * omega)**2 * cos(l1 + chi1)))
+        cos_phi = (np.sin(lamb) * np.sin(omega) * np.sin(l1) + np.cos(lamb) *
+                   (np.cos(0.5 * omega)**2 * np.cos(l1 - chi1) +
+                   np.sin(0.5 * omega)**2 * np.cos(l1 + chi1)))
 
         # Distance
         # (C) Distance parameter, equation 34
-        C = sqrt(1. / (1 + 0.006738 * sin(lamb)**2))
+        C = np.sqrt(1. / (1 + 0.006738 * np.sin(lamb)**2))
         # (r) Distance from point P to the center of the Earth
         r = C * a + H
         # (a') Distance parameter, equation 31
@@ -173,11 +172,11 @@ class TideModel():
         # (a1') Distance parameter, equation 31
         aprime1 = 1. / (c1 * (1 - e1 * e1))
         # (d) Distance between centers of the Earth and the moon
-        d = (1. / ((1. / c) + aprime * e * cos(s - p) + aprime * e * e *
-             cos(2 * (s - p)) + (15. / 8) * aprime * m * e * cos(s - 2 * h + p)
-             + aprime * m * m * cos(2 * (s - h))))
+        d = (1. / ((1. / c) + aprime * e * np.cos(s - p) + aprime * e * e *
+             np.cos(2 * (s - p)) + (15. / 8) * aprime * m * e * np.cos(s - 2 * h + p)
+             + aprime * m * m * np.cos(2 * (s - h))))
         # (D) Distance between centers of the Earth and the sun
-        D = 1. / ((1. / c1) + aprime1 * e1 * cos(h - p1))
+        D = 1. / ((1. / c1) + aprime1 * e1 * np.cos(h - p1))
 
         # (gm) Vertical componet of tidal acceleration due to the moon
         gm = ((mu * M * r / (d * d * d)) * (3 * cos_theta**2 - 1) + (3. / 2) *
